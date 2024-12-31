@@ -445,18 +445,19 @@ const StyledWrapper = styled.div`
 
   .wrapper {
     width: 100%;
-    height: 400px; // 减小高度
+    height: 400px;
     position: relative;
     text-align: center;
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: visible;
-    background: linear-gradient(135deg, #ffd1dc, #ffb6c1);
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     border-radius: 20px;
-    padding: 20px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-    margin-bottom: 100px; // 增加底部间距，为按钮留出空间
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   }
 
   .inner {
@@ -490,49 +491,70 @@ const StyledWrapper = styled.div`
 
   .card {
     position: absolute;
-    border: 3px solid rgba(var(--color-card), 0.8);
     border-radius: 16px;
     overflow: hidden;
     inset: 0;
     transform: rotateY(calc((360deg / var(--quantity)) * var(--index)))
       translateZ(var(--translateZ));
-    box-shadow: 0 5px 15px rgba(var(--color-card), 0.3);
+    background: linear-gradient(135deg, 
+      rgba(var(--color-card), 0.9) 0%,
+      rgba(var(--color-card), 0.7) 100%
+    );
+    box-shadow: 
+      0 4px 15px rgba(0, 0, 0, 0.1),
+      0 1px 2px rgba(255, 255, 255, 0.3),
+      inset 0 0 15px rgba(255, 255, 255, 0.2);
+    border: 3px solid rgba(255, 255, 255, 0.3);
     transition: transform 0.5s ease-out;
-    transform-style: preserve-3d;
     
+    &::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.4) 0%,
+        rgba(255, 255, 255, 0.1) 100%
+      );
+      opacity: 0.7;
+      z-index: 1;
+    }
+
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 1px;
+      border-radius: 14px;
+      background: repeating-linear-gradient(
+        45deg,
+        rgba(255, 255, 255, 0.1) 0px,
+        rgba(255, 255, 255, 0.1) 2px,
+        transparent 2px,
+        transparent 4px
+      );
+      z-index: 2;
+    }
+
     &.move-to-front {
       transform: translateZ(400px) scale(1.3) !important;
       z-index: 1000;
-    }
-
-    &.return-to-pool {
-      animation: returnToPool 0.5s ease-out forwards;
-    }
-  }
-
-  @keyframes returnToPool {
-    0% {
-      transform: translateZ(400px) scale(1.3);
-    }
-    100% {
-      transform: rotateY(calc((360deg / var(--quantity)) * var(--index)))
-        translateZ(var(--translateZ));
+      box-shadow: 
+        0 8px 30px rgba(0, 0, 0, 0.2),
+        0 2px 4px rgba(255, 255, 255, 0.3),
+        inset 0 0 30px rgba(255, 255, 255, 0.3);
+      border-width: 4px;
     }
   }
 
   .img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
-    background: radial-gradient(
-      circle at center,
-      rgba(var(--color-card), 0.3) 0%,
-      rgba(var(--color-card), 0.6) 60%,
-      rgba(var(--color-card), 0.8) 100%
-    );
+    position: relative;
+    z-index: 3;
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 20px;
   }
 
   .prize-content {
@@ -541,10 +563,21 @@ const StyledWrapper = styled.div`
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #333;
+    color: #fff;
     font-size: 24px;
     font-weight: bold;
-    background: rgba(255, 255, 255, 0.95);
+    text-shadow: 
+      0 2px 4px rgba(0, 0, 0, 0.3),
+      0 0 10px rgba(255, 255, 255, 0.5);
+    letter-spacing: 2px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 
+      0 4px 15px rgba(0, 0, 0, 0.1),
+      inset 0 0 20px rgba(255, 255, 255, 0.2);
     
     &.fade-out {
       animation: fadeOutGradually 2s ease-out forwards;
