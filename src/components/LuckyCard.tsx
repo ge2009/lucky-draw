@@ -36,6 +36,9 @@ const LuckyCard = () => {
   const [fadeOutName, setFadeOutName] = useState(false);
   const [isSoundEnabled, setIsSoundEnabled] = useState(true);
   const [isReturning, setIsReturning] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [password, setPassword] = useState('');
+  const [passwordError, setPasswordError] = useState(false);
 
   // 初始化加载所有奖品
   useEffect(() => {
@@ -77,7 +80,7 @@ const LuckyCard = () => {
       spread: 360, 
       ticks: 100, 
       zIndex: 0,
-      shapes: ['square', 'circle'],
+      shapes: ['square', 'circle'] as Array<'square' | 'circle'>,
       colors: ['#ff69b4', '#ff1493', '#9370db', '#20b2aa']
     };
 
@@ -201,15 +204,32 @@ const LuckyCard = () => {
     setFadeOutName(false);
   };
 
+  const checkPassword = () => {
+    const today = new Date();
+    const correctPassword = `${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}`;
+    
+    if (password === correctPassword) {
+      setShowPasswordModal(false);
+      setShowSettings(true);
+      setPassword('');
+      setPasswordError(false);
+    } else {
+      setPasswordError(true);
+      setTimeout(() => setPasswordError(false), 2000);
+    }
+  };
+
+  const handleSettingsClick = () => {
+    playSound(clickSound);
+    setShowPasswordModal(true);
+  };
+
   return (
     <StyledWrapper>
       <div className="controls">
         <button 
           className="control-button settings-button" 
-          onClick={() => {
-            playSound(clickSound);
-            setShowSettings(true);
-          }}
+          onClick={handleSettingsClick}
           aria-label="设置"
         >
           ⚙️
@@ -293,6 +313,33 @@ const LuckyCard = () => {
           onSave={handleSavePrizes} 
           onClose={() => setShowSettings(false)}
         />
+      )}
+
+      {showPasswordModal && (
+        <div className="password-modal">
+          <div className="modal-content">
+            <h3>请输入密码</h3>
+            <div className="input-wrapper">
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="请输入密码"
+                className={passwordError ? 'error' : ''}
+                onKeyDown={(e) => e.key === 'Enter' && checkPassword()}
+              />
+              {passwordError && <div className="error-message">密码错误</div>}
+            </div>
+            <div className="buttons">
+              <button onClick={checkPassword}>确认</button>
+              <button onClick={() => {
+                setShowPasswordModal(false);
+                setPassword('');
+                setPasswordError(false);
+              }}>取消</button>
+            </div>
+          </div>
+        </div>
       )}
     </StyledWrapper>
   );
@@ -689,6 +736,123 @@ const StyledWrapper = styled.div`
       filter: blur(8px);
       transform: scale(0.95);
     }
+  }
+
+  .password-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1100;
+    backdrop-filter: blur(5px);
+    animation: fadeIn 0.3s ease-out;
+
+    .modal-content {
+      background: white;
+      padding: 24px;
+      border-radius: 16px;
+      min-width: 300px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      animation: slideUp 0.3s ease-out;
+
+      h3 {
+        margin: 0 0 20px;
+        color: #ff69b4;
+        font-size: 20px;
+        text-align: center;
+      }
+
+      .input-wrapper {
+        margin-bottom: 20px;
+        position: relative;
+
+        input {
+          width: 100%;
+          padding: 12px;
+          border: 2px solid #eee;
+          border-radius: 8px;
+          font-size: 16px;
+          outline: none;
+          transition: all 0.3s;
+
+          &:focus {
+            border-color: #ff69b4;
+          }
+
+          &.error {
+            border-color: #ff4444;
+            animation: shake 0.5s;
+          }
+        }
+
+        .error-message {
+          position: absolute;
+          color: #ff4444;
+          font-size: 14px;
+          margin-top: 4px;
+          animation: fadeIn 0.3s;
+        }
+      }
+
+      .buttons {
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+
+        button {
+          padding: 8px 20px;
+          border: none;
+          border-radius: 8px;
+          font-size: 16px;
+          cursor: pointer;
+          transition: all 0.3s;
+
+          &:first-child {
+            background: #ff69b4;
+            color: white;
+
+            &:hover {
+              background: #ff1493;
+              transform: translateY(-2px);
+            }
+          }
+
+          &:last-child {
+            background: #eee;
+            color: #666;
+
+            &:hover {
+              background: #ddd;
+              transform: translateY(-2px);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
   }
 `;
 

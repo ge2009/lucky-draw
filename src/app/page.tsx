@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import dynamic from 'next/dynamic';
+import dynamic from "next/dynamic";
 
 // 使用动态导入并禁用 SSR
-const LuckyCard = dynamic(() => import('@/components/LuckyCard'), {
+const LuckyCard = dynamic(() => import("@/components/LuckyCard"), {
   ssr: false,
   loading: () => (
     <div className="min-h-screen flex items-center justify-center">
       <div className="animate-spin text-pink-500 text-4xl">🎁</div>
     </div>
-  )
+  ),
 });
 
 // 将整个页面组件也标记为客户端组件
