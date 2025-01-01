@@ -1,0 +1,6 @@
+name = "lucky-draw"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+[build]
+command = "npm run build" 
