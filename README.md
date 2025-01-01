@@ -14,6 +14,9 @@ Lucky Draw is a web application developed using Cursor IDE, specifically designe
 - ⚙️ Customizable prize settings
 - 🔄 Reset functionality
 - 🔐 Password-protected settings (using current date as password)
+- 🔒 Child lock feature for parental control
+- 📱 Responsive design for mobile devices
+- 🎯 Enhanced prize list display with visual feedback
 
 ### Live Demo
 Experience the application at: [https://lucky-draw.v2ex.com.cn/](https://lucky-draw.v2ex.com.cn/)
@@ -41,6 +44,9 @@ This project was born from a father's love, aiming to solve his daughter's homew
 - ⚙️ 可自定义奖品设置
 - 🔄 重新开始功能
 - 🔐 设置密码保护（使用当天日期作为密码）
+- 🔒 童锁功能（家长控制）
+- 📱 移动端适配优化
+- 🎯 优化奖品列表显示和视觉反馈
 
 ### 在线体验
 访问地址：[https://lucky-draw.v2ex.com.cn/](https://lucky-draw.v2ex.com.cn/)
@@ -61,6 +67,14 @@ This project was born from a father's love, aiming to solve his daughter's homew
 3. 抽中的作业会以动画效果展示
 4. 可以通过设置按钮自定义作业内容（密码为当天日期，如：20240301）
 5. 右上角提供音效开关和重置功能
+6. 童锁功能：
+   - 点击 🔓 按钮并输入密码可以开启童锁
+   - 开启童锁（🔒）后，修改设置需要输入密码
+   - 关闭童锁也需要输入密码验证
+7. 优化的奖品列表：
+   - 清晰显示所有可选作业
+   - 已抽取的作业会有特殊标记
+   - 支持响应式布局，适配各种屏幕尺寸
 
 ### 开发工具
 本项目使用 [Cursor IDE](https://cursor.sh/) 开发，这是一个强大的 AI 辅助编程工具，极大提升了开发效率。

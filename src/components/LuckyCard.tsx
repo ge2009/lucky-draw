@@ -39,6 +39,18 @@ const LuckyCard = () => {
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [password, setPassword] = useState('');
   const [passwordError, setPasswordError] = useState(false);
+  const [isChildLocked, setIsChildLocked] = useState(() => {
+    try {
+      return localStorage.getItem('isChildLocked') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  // 保存童锁状态到 localStorage
+  useEffect(() => {
+    localStorage.setItem('isChildLocked', String(isChildLocked));
+  }, [isChildLocked]);
 
   // 初始化加载所有奖品
   useEffect(() => {
@@ -210,7 +222,13 @@ const LuckyCard = () => {
     
     if (password === correctPassword) {
       setShowPasswordModal(false);
-      setShowSettings(true);
+      if (showSettings) {
+        // 如果是从设置按钮进入的，打开设置
+        setShowSettings(true);
+      } else {
+        // 如果是从童锁按钮进入的，切换童锁状态
+        setIsChildLocked(!isChildLocked);
+      }
       setPassword('');
       setPasswordError(false);
     } else {
@@ -221,11 +239,26 @@ const LuckyCard = () => {
 
   const handleSettingsClick = () => {
     playSound(clickSound);
-    setShowPasswordModal(true);
+    if (isChildLocked) {
+      setShowPasswordModal(true);
+    } else {
+      setShowSettings(true);
+    }
+  };
+
+  const toggleChildLock = () => {
+    playSound(clickSound);
+    if (!isChildLocked) {
+      // 开启童锁时需要验证密码
+      setShowPasswordModal(true);
+    } else {
+      // 关闭童锁也需要验证密码
+      setShowPasswordModal(true);
+    }
   };
 
   return (
-    <StyledWrapper>
+    <StyledWrapper $isChildLocked={isChildLocked}>
       <div className="controls">
         <button 
           className="control-button settings-button" 
@@ -240,6 +273,13 @@ const LuckyCard = () => {
           aria-label={isSoundEnabled ? "关闭声音" : "开启声音"}
         >
           {isSoundEnabled ? '🔊' : '🔇'}
+        </button>
+        <button 
+          className="control-button child-lock-button" 
+          onClick={toggleChildLock}
+          aria-label={isChildLocked ? "童锁已开启" : "童锁已关闭"}
+        >
+          {isChildLocked ? '🔒' : '🔓'}
         </button>
         <button 
           className="control-button reset-button" 
@@ -257,9 +297,10 @@ const LuckyCard = () => {
             key={prize.id} 
             className={`prize-item ${prize.isDrawn ? 'drawn' : ''}`}
           >
-            <span className={prize.isDrawn ? 'drawn' : ''}>
-              {prize.name} {prize.isDrawn && '✓'}
+            <span>
+              {prize.name}
             </span>
+            {prize.isDrawn && <div className="check-mark">✓</div>}
           </div>
         ))}
       </div>
@@ -345,397 +386,285 @@ const LuckyCard = () => {
   );
 }
 
-const StyledWrapper = styled.div`
-  width: 100%;
-  height: 100%;
+const StyledWrapper = styled.div<{ $isChildLocked?: boolean }>`
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  padding-top: 20px;
+  height: 100%;
+  width: 100%;
   position: relative;
-
-  .prize-list {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-    justify-content: center;
-    margin-bottom: 30px;
-    max-width: 600px;
-    perspective: 1000px;
-  }
-
-  .prize-item {
-    padding: 10px 20px;
-    background: rgba(255, 255, 255, 0.9);
-    border-radius: 20px;
-    font-size: 16px;
-    color: #666;
-    transition: all 0.5s ease;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    transform-style: preserve-3d;
-    
-    &.drawn {
-      animation: boxFadeOut 1s forwards;
-    }
-
-    span {
-      display: inline-block;
-      transition: all 0.5s ease;
-
-      &.drawn {
-        color: #ff69b4;
-        animation: particleEffect 1s forwards;
-      }
-    }
-  }
-
-  @keyframes boxFadeOut {
-    0% {
-      transform: scale(1);
-      opacity: 1;
-    }
-    50% {
-      transform: scale(0.9);
-      opacity: 0.5;
-    }
-    100% {
-      transform: scale(0);
-      opacity: 0;
-      margin: 0;
-      padding: 0;
-      width: 0;
-      height: 0;
-    }
-  }
+  gap: 1rem;
 
   .controls {
-    position: fixed;
-    top: 20px;
-    right: 20px;
+    position: absolute;
+    top: 0;
+    right: 0.5rem;
     display: flex;
-    gap: 12px;
-    z-index: 1000;
+    gap: 0.5rem;
+    z-index: 10;
   }
 
   .control-button {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.8);
     border: none;
-    color: white;
-    font-size: 24px;
+    border-radius: 50%;
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: 1.25rem;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    position: relative;
-    overflow: hidden;
+    transition: all 0.3s;
+    backdrop-filter: blur(5px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 
-    &::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: inherit;
-      transition: all 0.3s ease;
-      opacity: 0.7;
-    }
-
-    &:hover:not(:disabled) {
-      transform: translateY(-3px);
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-
-      &::before {
-        opacity: 1;
-      }
-    }
-
-    &:active:not(:disabled) {
-      transform: translateY(-1px);
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
 
     &:disabled {
       opacity: 0.5;
       cursor: not-allowed;
     }
-  }
 
-  .settings-button {
-    background: linear-gradient(135deg, #ff69b4, #ff1493);
-  }
-
-  .sound-button {
-    background: linear-gradient(135deg, #9370db, #8a2be2);
-  }
-
-  .reset-button {
-    background: linear-gradient(135deg, #20b2aa, #008b8b);
-    
-    &:not(:disabled) {
-      animation: pulse 2s infinite;
+    &.child-lock-button {
+      background: ${props => props.$isChildLocked ? 
+        'linear-gradient(45deg, #ff69b4, #ff1493)' : 
+        'linear-gradient(45deg, #90EE90, #32CD32)'};
+      color: white;
     }
   }
 
-  @keyframes pulse {
-    0% {
-      box-shadow: 0 0 0 0 rgba(32, 178, 170, 0.4);
+  .prize-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 0.75rem;
+    width: 100%;
+    padding: 1rem;
+    margin-top: 4rem;
+    max-height: 25vh;
+    overflow-y: auto;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 1.5rem;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+
+    @media (max-width: 640px) {
+      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+      margin-top: 3.5rem;
+      padding: 0.75rem;
+      gap: 0.5rem;
     }
-    70% {
-      box-shadow: 0 0 0 10px rgba(32, 178, 170, 0);
+
+    .prize-item {
+      background: white;
+      padding: 0.75rem;
+      border-radius: 1rem;
+      text-align: center;
+      font-size: 1rem;
+      transition: all 0.3s;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 3.5rem;
+      position: relative;
+      overflow: hidden;
+
+      @media (max-width: 640px) {
+        padding: 0.5rem;
+        font-size: 0.875rem;
+        min-height: 3rem;
+      }
+
+      &::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(45deg, rgba(255, 105, 180, 0.1), rgba(147, 112, 219, 0.1));
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+
+      &:hover:not(.drawn) {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+        &::before {
+          opacity: 1;
+        }
+      }
+
+      &.drawn {
+        opacity: 0.7;
+        background: #f8f8f8;
+
+        span {
+          color: #666;
+        }
+      }
+
+      span {
+        display: block;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        color: #333;
+        font-weight: 500;
+        padding: 0 0.25rem;
+      }
+
+      .check-mark {
+        position: absolute;
+        top: 0.25rem;
+        right: 0.25rem;
+        font-size: 0.875rem;
+        color: #ff69b4;
+      }
     }
-    100% {
-      box-shadow: 0 0 0 0 rgba(32, 178, 170, 0);
+
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: rgba(255, 105, 180, 0.3);
+      border-radius: 3px;
+      
+      &:hover {
+        background: rgba(255, 105, 180, 0.5);
+      }
     }
   }
 
   .wrapper {
-    width: 100%;
-    height: 400px;
     position: relative;
-    text-align: center;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: visible;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border-radius: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    height: 50vh;
+    perspective: 1000px;
+    margin: 1rem 0;
   }
 
   .inner {
-    --quantity: 6;
-    --w: 180px;
-    --h: 260px;
-    --translateZ: 220px;
-    --rotateX: -5deg;
-    --perspective: 1200px;
-    position: absolute;
-    width: var(--w);
-    height: var(--h);
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) perspective(var(--perspective)) rotateX(var(--rotateX));
+    position: relative;
+    width: 100%;
+    height: 100%;
     transform-style: preserve-3d;
-  }
+    transition: transform 0.5s;
 
-  .spinning {
-    animation: rotating 3s linear infinite;
-  }
-
-  @keyframes rotating {
-    from {
-      transform: translate(-50%, -50%) perspective(var(--perspective)) rotateX(var(--rotateX)) rotateY(0);
-    }
-    to {
-      transform: translate(-50%, -50%) perspective(var(--perspective)) rotateX(var(--rotateX)) rotateY(1turn);
+    &.spinning {
+      animation: spin 3s ease-out forwards;
     }
   }
 
   .card {
     position: absolute;
-    border-radius: 16px;
-    overflow: hidden;
-    inset: 0;
-    transform: rotateY(calc((360deg / var(--quantity)) * var(--index)))
-      translateZ(var(--translateZ));
-    background: linear-gradient(135deg, 
-      rgba(var(--color-card), 0.9) 0%,
-      rgba(var(--color-card), 0.7) 100%
-    );
-    box-shadow: 
-      0 4px 15px rgba(0, 0, 0, 0.1),
-      0 1px 2px rgba(255, 255, 255, 0.3),
-      inset 0 0 15px rgba(255, 255, 255, 0.2);
-    border: 3px solid rgba(255, 255, 255, 0.3);
-    transition: transform 0.5s ease-out;
-    
-    &::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(
-        135deg,
-        rgba(255, 255, 255, 0.4) 0%,
-        rgba(255, 255, 255, 0.1) 100%
-      );
-      opacity: 0.7;
-      z-index: 1;
-    }
+    width: 200px;
+    height: 280px;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%) 
+               rotateY(calc(var(--index) * 45deg)) 
+               translateZ(300px);
+    background: rgb(var(--color-card));
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    backface-visibility: visible;
+    transition: all 0.5s;
 
-    &::after {
-      content: '';
-      position: absolute;
-      inset: 1px;
-      border-radius: 14px;
-      background: repeating-linear-gradient(
-        45deg,
-        rgba(255, 255, 255, 0.1) 0px,
-        rgba(255, 255, 255, 0.1) 2px,
-        transparent 2px,
-        transparent 4px
-      );
-      z-index: 2;
+    @media (max-width: 640px) {
+      width: 150px;
+      height: 210px;
+      font-size: 20px;
+      transform: translate(-50%, -50%) 
+                 rotateY(calc(var(--index) * 45deg)) 
+                 translateZ(200px);
     }
 
     &.move-to-front {
-      transform: translateZ(400px) scale(1.3) !important;
-      z-index: 1000;
-      box-shadow: 
-        0 8px 30px rgba(0, 0, 0, 0.2),
-        0 2px 4px rgba(255, 255, 255, 0.3),
-        inset 0 0 30px rgba(255, 255, 255, 0.3);
-      border-width: 4px;
+      animation: moveToFront 0.5s forwards;
+    }
+
+    &.return-to-pool {
+      animation: returnToPool 0.5s forwards;
     }
   }
 
   .img {
     width: 100%;
     height: 100%;
-    position: relative;
-    z-index: 3;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 20px;
+    color: white;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+    padding: 1rem;
+    text-align: center;
+    word-break: break-all;
   }
 
   .prize-content {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    font-size: 24px;
+    opacity: 1;
+    transition: opacity 1s;
+    font-size: 1.5rem;
     font-weight: bold;
-    text-shadow: 
-      0 2px 4px rgba(0, 0, 0, 0.3),
-      0 0 10px rgba(255, 255, 255, 0.5);
-    letter-spacing: 2px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    backdrop-filter: blur(5px);
-    -webkit-backdrop-filter: blur(5px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: 
-      0 4px 15px rgba(0, 0, 0, 0.1),
-      inset 0 0 20px rgba(255, 255, 255, 0.2);
-    
-    &.fade-out {
-      animation: fadeOutGradually 2s ease-out forwards;
-    }
-  }
 
-  @keyframes fadeOutGradually {
-    0% {
-      opacity: 1;
-      filter: blur(0);
-      transform: scale(1);
-    }
-    50% {
-      opacity: 0.8;
-      filter: blur(2px);
-      transform: scale(0.98);
-    }
-    100% {
+    &.fade-out {
       opacity: 0;
-      filter: blur(8px);
-      transform: scale(0.95);
     }
   }
 
   .draw-button {
-    position: fixed; // 改为固定定位
-    bottom: 40px; // 距离底部距离
-    padding: 15px 40px;
-    font-size: 20px;
     background: linear-gradient(45deg, #ff69b4, #ff1493);
     color: white;
     border: none;
-    border-radius: 30px;
+    padding: 1rem 2rem;
+    border-radius: 2rem;
+    font-size: 1.25rem;
     cursor: pointer;
     transition: all 0.3s;
     box-shadow: 0 4px 15px rgba(255, 105, 180, 0.3);
-    z-index: 1000; // 确保按钮始终在最上层
+    margin-top: auto;
+    margin-bottom: 1rem;
 
-    &:disabled {
-      background: linear-gradient(45deg, #ffb6c1, #ffc0cb);
-      cursor: not-allowed;
-    }
-
-    &:hover:not(:disabled) {
-      transform: translateY(-3px);
+    &:hover {
+      transform: translateY(-2px);
       box-shadow: 0 6px 20px rgba(255, 105, 180, 0.4);
     }
 
-    &:active:not(:disabled) {
-      transform: translateY(-1px);
+    &:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
     }
   }
 
   .result {
     position: fixed;
-    bottom: 120px;
-    font-size: 24px;
-    color: #ff69b4;
-    text-align: center;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
-    animation: fadeIn 0.5s ease-in;
+    bottom: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
     background: rgba(255, 255, 255, 0.9);
-    padding: 10px 30px;
-    border-radius: 20px;
+    padding: 1rem 2rem;
+    border-radius: 2rem;
+    font-size: 1.25rem;
+    color: #ff1493;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    z-index: 1000;
-  }
-
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  @keyframes moveToFront {
-    0% {
-      transform: rotateY(calc((360deg / var(--quantity)) * var(--index)))
-        translateZ(var(--translateZ));
-    }
-    100% {
-      transform: translateZ(400px) scale(1.3);
-    }
-  }
-
-  .prize-item {
-    span.drawn {
-      animation: fadeOutGradually 2.5s ease-out forwards;
-    }
-  }
-
-  @keyframes fadeOutGradually {
-    0% {
-      opacity: 1;
-      filter: blur(0);
-      transform: scale(1);
-    }
-    50% {
-      opacity: 0.8;
-      filter: blur(2px);
-      transform: scale(0.98);
-    }
-    100% {
-      opacity: 0;
-      filter: blur(8px);
-      transform: scale(0.95);
-    }
+    backdrop-filter: blur(5px);
+    z-index: 100;
+    white-space: nowrap;
   }
 
   .password-modal {
@@ -745,35 +674,31 @@ const StyledWrapper = styled.div`
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 1100;
+    z-index: 1000;
     backdrop-filter: blur(5px);
-    animation: fadeIn 0.3s ease-out;
 
     .modal-content {
       background: white;
-      padding: 24px;
-      border-radius: 16px;
-      min-width: 300px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-      animation: slideUp 0.3s ease-out;
+      padding: 2rem;
+      border-radius: 1rem;
+      width: 90%;
+      max-width: 400px;
 
       h3 {
-        margin: 0 0 20px;
-        color: #ff69b4;
-        font-size: 20px;
+        margin: 0 0 1rem;
         text-align: center;
+        color: #ff69b4;
       }
 
       .input-wrapper {
-        margin-bottom: 20px;
-        position: relative;
+        margin-bottom: 1rem;
 
         input {
           width: 100%;
-          padding: 12px;
+          padding: 0.75rem;
           border: 2px solid #eee;
-          border-radius: 8px;
-          font-size: 16px;
+          border-radius: 0.5rem;
+          font-size: 1rem;
           outline: none;
           transition: all 0.3s;
 
@@ -783,29 +708,26 @@ const StyledWrapper = styled.div`
 
           &.error {
             border-color: #ff4444;
-            animation: shake 0.5s;
           }
         }
 
         .error-message {
-          position: absolute;
           color: #ff4444;
-          font-size: 14px;
-          margin-top: 4px;
-          animation: fadeIn 0.3s;
+          font-size: 0.875rem;
+          margin-top: 0.5rem;
         }
       }
 
       .buttons {
         display: flex;
-        gap: 12px;
-        justify-content: flex-end;
+        gap: 1rem;
+        justify-content: center;
 
         button {
-          padding: 8px 20px;
+          padding: 0.75rem 1.5rem;
           border: none;
-          border-radius: 8px;
-          font-size: 16px;
+          border-radius: 0.5rem;
+          font-size: 1rem;
           cursor: pointer;
           transition: all 0.3s;
 
@@ -815,7 +737,6 @@ const StyledWrapper = styled.div`
 
             &:hover {
               background: #ff1493;
-              transform: translateY(-2px);
             }
           }
 
@@ -825,7 +746,6 @@ const StyledWrapper = styled.div`
 
             &:hover {
               background: #ddd;
-              transform: translateY(-2px);
             }
           }
         }
@@ -833,26 +753,28 @@ const StyledWrapper = styled.div`
     }
   }
 
-  @keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-5px); }
-    75% { transform: translateX(5px); }
-  }
-
-  @keyframes slideUp {
+  @keyframes spin {
     from {
-      opacity: 0;
-      transform: translateY(20px);
+      transform: rotateY(0);
     }
     to {
-      opacity: 1;
-      transform: translateY(0);
+      transform: rotateY(1440deg);
     }
   }
 
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+  @keyframes moveToFront {
+    to {
+      transform: translate(-50%, -50%) rotateY(0) translateZ(400px) scale(1.2);
+    }
+  }
+
+  @keyframes returnToPool {
+    from {
+      transform: translate(-50%, -50%) rotateY(0) translateZ(400px) scale(1.2);
+    }
+    to {
+      transform: translate(-50%, -50%) rotateY(0) translateZ(300px) scale(1);
+    }
   }
 `;
 

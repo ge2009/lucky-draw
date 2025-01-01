@@ -15,13 +15,13 @@ const LuckyCard = dynamic(() => import("@/components/LuckyCard"), {
 // 将整个页面组件也标记为客户端组件
 const Home = () => {
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center p-4 relative bg-gradient-to-br from-pink-100 via-purple-100 to-blue-100">
-      <div className="fixed top-8">
-        <h1 className="text-4xl font-bold text-pink-500 animate-bounce">
-          ✨ Lucky Draw ✨
+    <main className="min-h-screen flex flex-col items-center justify-start p-4 relative bg-gradient-to-br from-pink-100 via-purple-100 to-blue-100">
+      <div className="fixed top-4 sm:top-8 z-10">
+        <h1 className="text-2xl sm:text-4xl font-bold text-pink-500 animate-bounce">
+          ✨ 抽卡片---随机作业 ✨
         </h1>
       </div>
-      <div className="w-full max-w-3xl h-[800px] relative bg-white/50 rounded-3xl shadow-xl p-8">
+      <div className="w-full max-w-3xl h-[calc(100vh-2rem)] sm:h-[800px] mt-16 sm:mt-24 relative bg-white/50 rounded-3xl shadow-xl p-4 sm:p-8 overflow-hidden">
         <LuckyCard />
       </div>
     </main>

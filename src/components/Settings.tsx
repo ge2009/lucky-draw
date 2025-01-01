@@ -95,11 +95,12 @@ const StyledSettings = styled.div`
 
   .modal {
     background: white;
-    padding: 24px;
-    border-radius: 20px;
-    min-width: 320px;
-    max-width: 500px;
+    padding: 1rem;
+    border-radius: 1rem;
     width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
     animation: modalShow 0.3s ease-out;
   }
@@ -108,21 +109,25 @@ const StyledSettings = styled.div`
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 24px;
+    margin-bottom: 1rem;
+    padding: 0.5rem;
 
     h2 {
       margin: 0;
       color: #ff69b4;
-      font-size: 24px;
+      font-size: 1.25rem;
+      @media (min-width: 640px) {
+        font-size: 1.5rem;
+      }
     }
 
     .close-button {
       background: none;
       border: none;
-      font-size: 28px;
+      font-size: 1.5rem;
       color: #666;
       cursor: pointer;
-      padding: 0;
+      padding: 0.5rem;
       
       &:hover {
         color: #ff69b4;
@@ -131,16 +136,16 @@ const StyledSettings = styled.div`
   }
 
   .prizes-list {
-    max-height: 300px;
+    max-height: 50vh;
     overflow-y: auto;
-    margin-bottom: 20px;
-    padding: 4px;
+    margin-bottom: 1rem;
+    padding: 0.5rem;
   }
 
   .prize-input {
     display: flex;
-    gap: 12px;
-    margin-bottom: 12px;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
     align-items: center;
 
     .input-wrapper {
@@ -148,8 +153,8 @@ const StyledSettings = styled.div`
       display: flex;
       align-items: center;
       background: #f5f5f5;
-      border-radius: 12px;
-      padding: 8px 16px;
+      border-radius: 0.75rem;
+      padding: 0.5rem 1rem;
       transition: all 0.3s;
 
       &:focus-within {
@@ -158,16 +163,16 @@ const StyledSettings = styled.div`
       }
 
       .emoji {
-        margin-right: 8px;
-        font-size: 20px;
+        margin-right: 0.5rem;
+        font-size: 1.25rem;
       }
 
       input {
         flex: 1;
         border: none;
         background: none;
-        padding: 8px 0;
-        font-size: 16px;
+        padding: 0.5rem 0;
+        font-size: 1rem;
         outline: none;
 
         &::placeholder {
@@ -179,9 +184,9 @@ const StyledSettings = styled.div`
     .delete-button {
       background: none;
       border: none;
-      font-size: 20px;
+      font-size: 1.25rem;
       cursor: pointer;
-      padding: 8px;
+      padding: 0.5rem;
       opacity: 0.6;
       transition: all 0.3s;
 
@@ -194,19 +199,19 @@ const StyledSettings = styled.div`
 
   .add-button {
     width: 100%;
-    padding: 12px;
+    padding: 0.75rem;
     background: #f0f0f0;
     border: 2px dashed #ccc;
-    border-radius: 12px;
+    border-radius: 0.75rem;
     color: #666;
-    font-size: 16px;
+    font-size: 1rem;
     cursor: pointer;
-    margin-bottom: 24px;
+    margin-bottom: 1.5rem;
     transition: all 0.3s;
 
     .plus {
-      font-size: 20px;
-      margin-right: 8px;
+      font-size: 1.25rem;
+      margin-right: 0.5rem;
     }
 
     &:hover {
@@ -218,14 +223,14 @@ const StyledSettings = styled.div`
 
   .buttons {
     display: flex;
-    gap: 12px;
+    gap: 0.75rem;
     justify-content: flex-end;
 
     button {
-      padding: 12px 24px;
+      padding: 0.75rem 1.5rem;
       border: none;
-      border-radius: 12px;
-      font-size: 16px;
+      border-radius: 0.75rem;
+      font-size: 1rem;
       cursor: pointer;
       transition: all 0.3s;
 
