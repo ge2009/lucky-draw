@@ -18,7 +18,7 @@ const Home = () => {
     <main className="min-h-screen flex flex-col items-center justify-center p-4 relative bg-gradient-to-br from-pink-100 via-purple-100 to-blue-100">
       <div className="fixed top-8">
         <h1 className="text-4xl font-bold text-pink-500 animate-bounce">
-          ✨ 抽卡片---随机作业 ✨
+          ✨ Lucky Draw ✨
         </h1>
       </div>
       <div className="w-full max-w-3xl h-[800px] relative bg-white/50 rounded-3xl shadow-xl p-8">

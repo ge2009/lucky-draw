@@ -1,36 +1,72 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 福袋抽奖 (Lucky Draw)
 
-## Getting Started
+<details>
+<summary>Click for English Version / 点击查看英文版本</summary>
 
-First, run the development server:
+## Introduction
+Lucky Draw is a web application developed using Cursor IDE, specifically designed to help children overcome decision paralysis when choosing homework assignments. The application transforms homework selection into an engaging and fun experience through an interactive card-drawing system.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+### Features
+- 🎯 Random homework assignment selection
+- 🎨 Beautiful 3D card animation effects
+- 🎉 Celebratory confetti effects
+- 🔊 Interactive sound effects
+- ⚙️ Customizable prize settings
+- 🔄 Reset functionality
+- 🔐 Password-protected settings (using current date as password)
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Live Demo
+Experience the application at: [https://lucky-draw.v2ex.com.cn/](https://lucky-draw.v2ex.com.cn/)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Technology Stack
+- Next.js
+- React
+- TypeScript
+- Styled Components
+- Canvas Confetti
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Development Background
+This project was born from a father's love, aiming to solve his daughter's homework decision-making difficulties. By turning homework selection into a fun game, it helps reduce anxiety and makes the process more enjoyable.
 
-## Learn More
+</details>
 
-To learn more about Next.js, take a look at the following resources:
+## 简介
+福袋抽奖是一个使用 Cursor IDE 开发的网页应用，专门设计用来帮助孩子克服选择作业时的困扰。通过互动的抽卡系统，将作业选择转变为一个有趣的体验。
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 主要功能
+- 🎯 随机作业任务抽取
+- 🎨 精美的 3D 卡片动画效果
+- 🎉 抽中奖品时的撒花效果
+- 🔊 互动音效
+- ⚙️ 可自定义奖品设置
+- 🔄 重新开始功能
+- 🔐 设置密码保护（使用当天日期作为密码）
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 在线体验
+访问地址：[https://lucky-draw.v2ex.com.cn/](https://lucky-draw.v2ex.com.cn/)
 
-## Deploy on Vercel
+### 技术栈
+- Next.js
+- React
+- TypeScript
+- Styled Components
+- Canvas Confetti
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 开发背景
+这个项目源于一位父亲的爱心，旨在解决女儿在做作业时的选择困难问题。通过将作业选择转变为一个有趣的游戏，帮助减轻焦虑，让整个过程变得更加愉快。
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### 使用说明
+1. 打开应用后，可以看到多张彩色卡片在旋转
+2. 点击"抽取福袋"按钮开始抽取
+3. 抽中的作业会以动画效果展示
+4. 可以通过设置按钮自定义作业内容（密码为当天日期，如：20240301）
+5. 右上角提供音效开关和重置功能
+
+### 开发工具
+本项目使用 [Cursor IDE](https://cursor.sh/) 开发，这是一个强大的 AI 辅助编程工具，极大提升了开发效率。
+
+### 贡献
+欢迎提出建议和改进意见！如果你有任何想法，请随时提出 issue 或 pull request。
+
+### 许可
+MIT License
