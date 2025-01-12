@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import Link from "next/link";
 
 // 使用动态导入并禁用 SSR
 const LuckyCard = dynamic(() => import("@/components/LuckyCard"), {
@@ -21,7 +22,21 @@ const Home = () => {
           ✨ 抽卡片---随机作业 ✨
         </h1>
       </div>
-      <div className="w-full max-w-3xl h-[calc(100vh-2rem)] sm:h-[800px] mt-16 sm:mt-24 relative bg-white/50 rounded-3xl shadow-xl p-4 sm:p-8 overflow-hidden">
+      <div className="fixed top-20 sm:top-24 z-10 flex gap-4">
+        <Link 
+          href="/"
+          className="px-4 py-2 bg-pink-500 text-white rounded-full shadow-lg hover:bg-pink-600 transition-all"
+        >
+          🎲 抽卡模式
+        </Link>
+        <Link 
+          href="/redpacket"
+          className="px-4 py-2 bg-red-500 text-white rounded-full shadow-lg hover:bg-red-600 transition-all"
+        >
+          🧧 红包模式
+        </Link>
+      </div>
+      <div className="w-full max-w-3xl h-[calc(100vh-2rem)] sm:h-[800px] mt-28 sm:mt-36 relative bg-white/50 rounded-3xl shadow-xl p-4 sm:p-8 overflow-hidden">
         <LuckyCard />
       </div>
     </main>
