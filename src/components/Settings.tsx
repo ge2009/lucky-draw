@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import styled from 'styled-components';
 
 interface Prize {
@@ -10,12 +10,15 @@ interface Prize {
 
 interface SettingsProps {
   prizes: Prize[];
-  onSave: (prizes: Prize[]) => void;
+  onSave: (prizes: Prize[], coverImage?: string) => void;
   onClose: () => void;
+  currentCoverImage?: string;
 }
 
-export const Settings = ({ prizes, onSave, onClose }: SettingsProps) => {
+export const Settings = ({ prizes, onSave, onClose, currentCoverImage }: SettingsProps) => {
   const [editedPrizes, setEditedPrizes] = useState<Prize[]>(prizes);
+  const [coverImage, setCoverImage] = useState<string>(currentCoverImage || '');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleAdd = () => {
     const newPrize: Prize = {
@@ -36,12 +39,47 @@ export const Settings = ({ prizes, onSave, onClose }: SettingsProps) => {
     ));
   };
 
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setCoverImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleImageClick = () => {
+    fileInputRef.current?.click();
+  };
+
   return (
     <StyledSettings>
       <div className="modal">
         <div className="modal-header">
-          <h2>✨ 奖品设置 ✨</h2>
+          <h2>✨ 红包设置 ✨</h2>
           <button className="close-button" onClick={onClose}>×</button>
+        </div>
+
+        <div className="cover-upload">
+          <h3>红包封面图片</h3>
+          <div 
+            className="image-preview" 
+            onClick={handleImageClick}
+            style={{
+              backgroundImage: coverImage ? `url(${coverImage})` : 'none'
+            }}
+          >
+            {!coverImage && <span>点击上传图片</span>}
+          </div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleImageUpload}
+            style={{ display: 'none' }}
+          />
         </div>
         
         <div className="prizes-list">
@@ -71,7 +109,10 @@ export const Settings = ({ prizes, onSave, onClose }: SettingsProps) => {
         </button>
 
         <div className="buttons">
-          <button className="save-button" onClick={() => onSave(editedPrizes)}>
+          <button 
+            className="save-button" 
+            onClick={() => onSave(editedPrizes, coverImage)}
+          >
             保存设置
           </button>
           <button className="cancel-button" onClick={onClose}>
@@ -252,6 +293,43 @@ const StyledSettings = styled.div`
           background: #e0e0e0;
           transform: translateY(-2px);
         }
+      }
+    }
+  }
+
+  .cover-upload {
+    margin-bottom: 1.5rem;
+    padding: 0.5rem;
+
+    h3 {
+      margin: 0 0 0.5rem;
+      color: #666;
+      font-size: 1rem;
+    }
+
+    .image-preview {
+      width: 100%;
+      height: 200px;
+      border: 2px dashed #ccc;
+      border-radius: 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      transition: all 0.3s;
+
+      span {
+        color: #666;
+        font-size: 1rem;
+      }
+
+      &:hover {
+        border-color: #ff69b4;
+        color: #ff69b4;
+        background-color: #f8f8f8;
       }
     }
   }

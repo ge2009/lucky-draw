@@ -60,6 +60,13 @@ const RedPacketComponent = () => {
     }
   });
   const [isShuffling, setIsShuffling] = useState(false);
+  const [coverImage, setCoverImage] = useState<string>(() => {
+    try {
+      return localStorage.getItem('redPacketCover') || '';
+    } catch {
+      return '';
+    }
+  });
 
   useEffect(() => {
     setPackets(prizes.map((prize: Prize) => ({
@@ -195,14 +202,8 @@ const RedPacketComponent = () => {
   };
 
   const handleReset = () => {
-    if (isShuffling) return; // 防止动画过程中重置
-    
-    playSound(clickSound);
-    setPackets(packets.map(p => ({ ...p, isOpened: false })));
-    setSelectedPacket(null);
-    setShowResult(false);
-    // 移除自动洗牌
-    shufflePackets();
+    if (isShuffling) return;
+    window.location.reload(); // 直接刷新页面重新开始
   };
 
   const handleSettingsClick = () => {
@@ -218,9 +219,13 @@ const RedPacketComponent = () => {
     }
   };
 
-  const handleSettingsSave = (newPrizes: Prize[]) => {
+  const handleSettingsSave = (newPrizes: Prize[], newCoverImage?: string) => {
     setPrizes(newPrizes);
     localStorage.setItem('prizes', JSON.stringify(newPrizes));
+    if (newCoverImage) {
+      setCoverImage(newCoverImage);
+      localStorage.setItem('redPacketCover', newCoverImage);
+    }
     setShowSettings(false);
   };
 
@@ -272,32 +277,33 @@ const RedPacketComponent = () => {
             className={`modern-red-packet ${packet.isOpened ? 'opened' : ''} ${
               isOpening && selectedPacket?.id === packet.id ? 'opening' : ''
             }`}
-            onClick={() => !isShuffling && handleOpenPacket(packet)}
+            onClick={() => !isShuffling && !packet.isOpened && handleOpenPacket(packet)}
             style={{ 
-              cursor: isShuffling ? 'default' : 'pointer',
+              cursor: isShuffling || packet.isOpened ? 'default' : 'pointer',
               pointerEvents: isShuffling ? 'none' : 'auto'
             }}
           >
             <div className="packet-front">
-              {/* Golden border */}
-              <div className="golden-border" />
-              
-              {/* Main content */}
-              <div className="main-content">
-                {/* Abstract lines */}
-                <svg className="abstract-lines" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  <path d="M0,50 Q25,25 50,50 T100,50" fill="none" stroke="rgba(255,215,0,0.3)" strokeWidth="0.5" />
-                  <path d="M0,70 Q25,45 50,70 T100,70" fill="none" stroke="rgba(255,215,0,0.3)" strokeWidth="0.5" />
-                  <path d="M0,30 Q25,5 50,30 T100,30" fill="none" stroke="rgba(255,215,0,0.3)" strokeWidth="0.5" />
-                </svg>
-                
-                {/* Modern 福 character */}
-                <div className="fu-character">福</div>
-                
-                {/* Decorative elements */}
-                <div className="corner-decoration top-left" />
-                <div className="corner-decoration bottom-right" />
-              </div>
+              {coverImage ? (
+                <div 
+                  className="custom-cover"
+                  style={{
+                    backgroundImage: `url(${coverImage})`
+                  }}
+                />
+              ) : (
+                <div className="illustration">
+                  <div className="character" />
+                  <div className="decorations">
+                    <div className="sun" />
+                    <div className="cloud">☁️</div>
+                    <div className="cloud">☁️</div>
+                    <div className="flower">🌸</div>
+                    <div className="flower">🌼</div>
+                    <div className="pencil" />
+                  </div>
+                </div>
+              )}
             </div>
             <div className="packet-back">
               <div className="amount" style={{ 
@@ -323,6 +329,7 @@ const RedPacketComponent = () => {
           prizes={prizes}
           onSave={handleSettingsSave}
           onClose={() => setShowSettings(false)}
+          currentCoverImage={coverImage}
         />
       )}
     </StyledWrapper>
@@ -389,34 +396,8 @@ const StyledWrapper = styled.div`
     transform-style: preserve-3d;
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 
-    &:hover {
+    &:not(.opened):hover {
       transform: translateY(-8px) scale(1.02);
-      filter: brightness(1.1);
-      
-      .golden-border {
-        opacity: 1;
-        background: linear-gradient(to bottom right, #fcd34d, #f59e0b);
-      }
-      
-      .fu-character {
-        transform: rotate(-12deg) scale(1.1);
-        text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.4);
-      }
-
-      .corner-decoration {
-        opacity: 0.8;
-        &.top-left {
-          transform: translate(-2px, -2px);
-        }
-        &.bottom-right {
-          transform: translate(2px, 2px);
-        }
-      }
-
-      .abstract-lines path {
-        stroke: rgba(255, 215, 0, 0.5);
-        stroke-width: 0.8;
-      }
     }
 
     &.opening {
@@ -425,15 +406,7 @@ const StyledWrapper = styled.div`
 
     &.opened {
       transform: rotateY(180deg);
-      
-      &:hover {
-        transform: rotateY(180deg) translateY(-8px) scale(1.02);
-        
-        .amount {
-          transform: scale(1.1);
-          text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.4);
-        }
-      }
+      pointer-events: none;
     }
 
     .packet-front,
@@ -442,100 +415,38 @@ const StyledWrapper = styled.div`
       width: 100%;
       height: 100%;
       backface-visibility: hidden;
-      border-radius: 0.75rem;
       overflow: hidden;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 
-                  0 2px 4px -1px rgba(0, 0, 0, 0.06);
-      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-
-      &:hover {
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2), 
-                   0 4px 6px -2px rgba(0, 0, 0, 0.1);
-      }
     }
 
     .packet-front {
-      background: linear-gradient(to bottom right, #dc2626, #991b1b);
-      
-      .golden-border {
-        position: absolute;
-        inset: 0.125rem;
-        background: linear-gradient(to bottom right, #fbbf24, #d97706);
-        border-radius: 0.75rem;
-        opacity: 0.8;
-        transition: all 0.4s ease;
-      }
-
-      .main-content {
-        position: absolute;
-        inset: 0.25rem;
-        background: linear-gradient(to bottom right, #dc2626, #991b1b);
-        border-radius: 0.75rem;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-      }
-
-      .abstract-lines {
+      .custom-cover {
         position: absolute;
         inset: 0;
         width: 100%;
         height: 100%;
-        
-        path {
-          transition: all 0.4s ease;
-        }
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
       }
 
-      .fu-character {
-        font-size: 4rem;
-        font-weight: bold;
-        color: #fbbf24;
-        transform: rotate(-12deg);
-        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-        z-index: 1;
-        transition: all 0.4s ease;
-      }
-
-      .corner-decoration {
-        position: absolute;
-        width: 2rem;
-        height: 2rem;
-        transition: all 0.4s ease;
-        
-        &.top-left {
-          top: 1rem;
-          left: 1rem;
-          border-top: 2px solid #fbbf24;
-          border-left: 2px solid #fbbf24;
-          opacity: 0.5;
-        }
-        
-        &.bottom-right {
-          bottom: 1rem;
-          right: 1rem;
-          border-bottom: 2px solid #fbbf24;
-          border-right: 2px solid #fbbf24;
-          opacity: 0.5;
-        }
-      }
+      // ... 其他样式保持不变 ...
     }
 
     .packet-back {
-      background: linear-gradient(to bottom right, #ef4444, #dc2626);
       transform: rotateY(180deg);
       display: flex;
       align-items: center;
       justify-content: center;
       padding: 1rem;
+      background: #fff;
 
       .amount {
-        color: #fbbf24;
+        color: #ff6b6b;
         font-size: 1.5rem;
         font-weight: bold;
         text-align: center;
-        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        padding: 1rem;
+        border-radius: 0.5rem;
         transition: all 0.4s ease;
       }
     }
