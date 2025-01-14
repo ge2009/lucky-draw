@@ -29,6 +29,8 @@ const DEFAULT_PACKETS: RedPacket[] = [
   { id: 5, amount: '休息时间' },
 ];
 
+const DEFAULT_COVER_IMAGE = '/images/red-packet-cover.png';
+
 const RedPacketComponent = () => {
   const [packets, setPackets] = useState<RedPacket[]>(DEFAULT_PACKETS);
   const [selectedPacket, setSelectedPacket] = useState<RedPacket | null>(null);
@@ -62,11 +64,16 @@ const RedPacketComponent = () => {
   const [isShuffling, setIsShuffling] = useState(false);
   const [coverImage, setCoverImage] = useState<string>(() => {
     try {
-      return localStorage.getItem('redPacketCover') || '';
+      return localStorage.getItem('redPacketCover') || DEFAULT_COVER_IMAGE;
     } catch {
-      return '';
+      return DEFAULT_COVER_IMAGE;
     }
   });
+  const [showModal, setShowModal] = useState(false);
+  const [modalContent, setModalContent] = useState<{
+    type: 'cover' | 'result';
+    content: string;
+  } | null>(null);
 
   useEffect(() => {
     setPackets(prizes.map((prize: Prize) => ({
@@ -229,9 +236,59 @@ const RedPacketComponent = () => {
     setShowSettings(false);
   };
 
+  const handlePacketClick = (packet: RedPacket) => {
+    if (isShuffling || packet.isOpened) return;
+    
+    // 播放音效
+    playSound(openSound);
+    
+    // 显示模态框和封面
+    setModalContent({
+      type: 'cover',
+      content: coverImage
+    });
+    setShowModal(true);
+    
+    // 标记红包为已打开
+    const newPackets = packets.map(p => 
+      p.id === packet.id ? { ...p, isOpened: true } : p
+    );
+    setPackets(newPackets);
+    setSelectedPacket(packet);
+    
+    // 1秒后翻转显示结果
+    setTimeout(() => {
+      setModalContent({
+        type: 'result',
+        content: packet.amount
+      });
+      
+      // 触发烟花效果
+      confetti({
+        particleCount: 150,
+        spread: 100,
+        origin: { y: 0.6 },
+        zIndex: 2000, // 确保烟花显示在最上层
+      });
+      
+      playSound(winSound);
+    }, 1000);
+  };
+
   return (
     <StyledWrapper>
       <div className="controls">
+        <a 
+          href="https://github.com/ge2009/lucky-draw"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="control-button github-button"
+          aria-label="访问 GitHub 仓库"
+        >
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+            <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.17 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.604-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.464-1.11-1.464-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.167 22 16.418 22 12c0-5.523-4.477-10-10-10z" />
+          </svg>
+        </a>
         <button 
           className="control-button home-button" 
           onClick={() => window.location.href = '/'}
@@ -254,14 +311,6 @@ const RedPacketComponent = () => {
           {isSoundEnabled ? '🔊' : '🔇'}
         </button>
         <button 
-          className="control-button shuffle-button" 
-          onClick={shufflePackets}
-          disabled={isShuffling}
-          aria-label="洗牌"
-        >
-          🔀
-        </button>
-        <button 
           className="control-button reset-button" 
           onClick={handleReset}
           aria-label="重新开始"
@@ -270,14 +319,19 @@ const RedPacketComponent = () => {
         </button>
       </div>
 
-      <div className="packets-container">
+      <div className="guide-text">
+        <p>点击<span className="highlight">红包</span>抽取今天的作业内容</p>
+        <p>使用<span className="highlight">🔄</span>重新开始游戏</p>
+      </div>
+
+      <div className="packets-container" data-count={packets.length}>
         {packets.map((packet) => (
           <div
             key={packet.id}
             className={`modern-red-packet ${packet.isOpened ? 'opened' : ''} ${
               isOpening && selectedPacket?.id === packet.id ? 'opening' : ''
             }`}
-            onClick={() => !isShuffling && !packet.isOpened && handleOpenPacket(packet)}
+            onClick={() => handlePacketClick(packet)}
             style={{ 
               cursor: isShuffling || packet.isOpened ? 'default' : 'pointer',
               pointerEvents: isShuffling ? 'none' : 'auto'
@@ -318,9 +372,21 @@ const RedPacketComponent = () => {
         ))}
       </div>
 
-      {showResult && selectedPacket && (
-        <div className="result">
-          抽中作业：{selectedPacket.amount}
+      {showModal && (
+        <div className="modal" onClick={() => setShowModal(false)}>
+          <div className="modal-backdrop" />
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <div className={`modal-card ${modalContent?.type === 'result' ? 'flipped' : ''}`}>
+              <div className="modal-front">
+                <img src={modalContent?.content} alt="红包封面" />
+              </div>
+              <div className="modal-back">
+                <div className="result-text">
+                  <div className="result-content">{modalContent?.content}</div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
@@ -337,76 +403,182 @@ const RedPacketComponent = () => {
 };
 
 const StyledWrapper = styled.div`
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
-  height: 100%;
-  width: 100%;
-  position: relative;
-  gap: 2rem;
+  padding: 1rem;
 
   .controls {
-    position: absolute;
+    position: fixed;
     top: 1rem;
     right: 1rem;
     display: flex;
-    gap: 0.5rem;
-    z-index: 10;
+    gap: 0.8rem;
+    z-index: 100;
+
+    .control-button {
+      width: 2.5rem;
+      height: 2.5rem;
+      border: none;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(4px);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      transition: all 0.2s ease;
+
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        background: rgba(255, 255, 255, 1);
+      }
+
+      &:active {
+        transform: translateY(0);
+      }
+
+      &.github-button {
+        background: linear-gradient(45deg, #333, #24292e);
+        color: white;
+        padding: 0.5rem;
+
+        svg {
+          width: 1.5rem;
+          height: 1.5rem;
+        }
+
+        &:hover {
+          background: linear-gradient(45deg, #24292e, #1a1a1a);
+        }
+      }
+    }
   }
 
-  .control-button {
-    background: rgba(255, 255, 255, 0.8);
-    border: none;
-    border-radius: 50%;
-    width: 2.5rem;
-    height: 2.5rem;
-    font-size: 1.25rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s;
-    backdrop-filter: blur(5px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-
-    &:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  .guide-text {
+    text-align: center;
+    margin: 2rem 0;
+    color: #666;
+    font-size: 1.1rem;
+    max-width: 800px;
+    line-height: 1.6;
+    
+    .highlight {
+      color: #ff4d4d;
+      font-weight: 500;
+    }
+    
+    @media (max-width: 768px) {
+      font-size: 1rem;
+      padding: 0 1rem;
     }
   }
 
   .packets-container {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 2rem;
-    padding: 2rem;
+    gap: 1.5rem;
+    padding: 1.5rem;
     width: 100%;
-    max-width: 800px;
-    margin-top: 2rem;
+    max-width: 1200px;
+    margin: 5rem auto 2rem;
+    place-items: center;
+    
+    // 根据红包数量调整大小和布局
+    &[data-count="1"] {
+      max-width: 400px;
+      margin-top: 8rem;
+      .modern-red-packet {
+        width: 300px;
+        height: 400px;
+      }
+    }
+    
+    &[data-count="2"] {
+      max-width: 800px;
+      grid-template-columns: repeat(2, 1fr);
+      margin-top: 7rem;
+      .modern-red-packet {
+        width: 250px;
+        height: 333px;
+      }
+    }
+    
+    &[data-count="3"] {
+      max-width: 900px;
+      grid-template-columns: repeat(3, 1fr);
+      margin-top: 6rem;
+      .modern-red-packet {
+        width: 220px;
+        height: 293px;
+      }
+    }
+    
+    &[data-count="4"] {
+      max-width: 1000px;
+      grid-template-columns: repeat(2, 1fr);
+      margin-top: 6rem;
+      .modern-red-packet {
+        width: 200px;
+        height: 267px;
+      }
+    }
+    
+    &[data-count="5"], &[data-count="6"] {
+      max-width: 1100px;
+      grid-template-columns: repeat(3, 1fr);
+      margin-top: 5.5rem;
+      .modern-red-packet {
+        width: 180px;
+        height: 240px;
+      }
+    }
+    
+    &[data-count="7"], &[data-count="8"], &[data-count="9"] {
+      max-width: 1200px;
+      grid-template-columns: repeat(3, 1fr);
+      margin-top: 5rem;
+      .modern-red-packet {
+        width: 160px;
+        height: 213px;
+      }
+    }
+    
+    // 超过9个时使用默认大小
+    &[data-count="10"] {
+      grid-template-columns: repeat(4, 1fr);
+      margin-top: 5rem;
+      .modern-red-packet {
+        width: 150px;
+        height: 200px;
+      }
+    }
   }
 
   .modern-red-packet {
     position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.3s ease;
+    margin: 0 auto;
     width: 150px;
     height: 200px;
-    margin: 0 auto;
     perspective: 1000px;
     cursor: pointer;
-    transform-style: preserve-3d;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-
-    &:not(.opened):hover {
-      transform: translateY(-8px) scale(1.02);
-    }
 
     &.opening {
-      animation: openPacket 1s forwards;
+      transform-style: preserve-3d;
+      animation: flip 0.6s ease-in-out forwards;
     }
 
     &.opened {
-      transform: rotateY(180deg);
       pointer-events: none;
+      transform: rotateY(180deg);
     }
 
     .packet-front,
@@ -415,52 +587,53 @@ const StyledWrapper = styled.div`
       width: 100%;
       height: 100%;
       backface-visibility: hidden;
+      border-radius: 12px;
       overflow: hidden;
     }
 
     .packet-front {
+      background: #fff;
+      transform: rotateY(0deg);
+      
       .custom-cover {
-        position: absolute;
-        inset: 0;
         width: 100%;
         height: 100%;
         background-size: cover;
         background-position: center;
-        background-repeat: no-repeat;
-      }
+        transition: all 0.3s ease;
+        transform-origin: center;
 
-      // ... 其他样式保持不变 ...
+        &:hover {
+          transform: scale(1.05);
+          filter: brightness(1.1);
+          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+      }
     }
 
     .packet-back {
+      background: linear-gradient(135deg, #ff4d4d 0%, #ff1a1a 100%);
       transform: rotateY(180deg);
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 1rem;
-      background: #fff;
-
+      
       .amount {
-        color: #ff6b6b;
         font-size: 1.5rem;
-        font-weight: bold;
-        text-align: center;
+        color: #fff;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
         padding: 1rem;
-        border-radius: 0.5rem;
-        transition: all 0.4s ease;
+        text-align: center;
       }
     }
   }
 
-  @keyframes openPacket {
-    0% {
-      transform: scale(1) rotateY(0);
+  @keyframes flip {
+    from {
+      transform: rotateY(0deg);
     }
-    50% {
-      transform: scale(1.2) rotateY(90deg);
-    }
-    100% {
-      transform: scale(1) rotateY(180deg);
+    to {
+      transform: rotateY(180deg);
     }
   }
 
@@ -522,6 +695,99 @@ const StyledWrapper = styled.div`
     .result {
       font-size: 1rem;
       padding: 0.75rem 1.5rem;
+    }
+  }
+
+  .modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    
+    .modal-backdrop {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(8px);
+    }
+    
+    .modal-content {
+      position: relative;
+      z-index: 1001;
+      width: 300px;
+      height: 400px;
+      perspective: 1000px;
+      
+      .modal-card {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        transform-style: preserve-3d;
+        transition: transform 0.6s;
+        
+        &.flipped {
+          transform: rotateY(180deg);
+        }
+        
+        .modal-front,
+        .modal-back {
+          position: absolute;
+          width: 100%;
+          height: 100%;
+          backface-visibility: hidden;
+          border-radius: 12px;
+          overflow: hidden;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        
+        .modal-front {
+          background: #fff;
+          img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+          }
+        }
+        
+        .modal-back {
+          background: linear-gradient(135deg, #ff4d4d 0%, #ff1a1a 100%);
+          transform: rotateY(180deg);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          
+          .result-text {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+
+            .result-content {
+              font-size: 2.5rem;
+              font-weight: 500;
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  @keyframes zoomIn {
+    from {
+      transform: scale(0.5);
+      opacity: 0;
+    }
+    to {
+      transform: scale(1);
+      opacity: 1;
     }
   }
 `;

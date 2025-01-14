@@ -258,7 +258,7 @@ const LuckyCard = () => {
   };
 
   return (
-    <StyledWrapper $isChildLocked={isChildLocked}>
+    <StyledWrapper>
       <div className="controls">
         <a 
           href="https://github.com/ge2009/lucky-draw"
@@ -271,6 +271,13 @@ const LuckyCard = () => {
             <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.17 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.604-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.464-1.11-1.464-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.167 22 16.418 22 12c0-5.523-4.477-10-10-10z" />
           </svg>
         </a>
+        <button 
+          className="control-button home-button" 
+          onClick={() => window.location.href = '/'}
+          aria-label="返回主页"
+        >
+          🏠
+        </button>
         <button 
           className="control-button settings-button" 
           onClick={handleSettingsClick}
@@ -286,34 +293,17 @@ const LuckyCard = () => {
           {isSoundEnabled ? '🔊' : '🔇'}
         </button>
         <button 
-          className="control-button child-lock-button" 
-          onClick={toggleChildLock}
-          aria-label={isChildLocked ? "童锁已开启" : "童锁已关闭"}
-        >
-          {isChildLocked ? '🔒' : '🔓'}
-        </button>
-        <button 
           className="control-button reset-button" 
           onClick={handleReset}
           aria-label="重新开始"
-          disabled={isSpinning || isReturning}
         >
           🔄
         </button>
       </div>
-      
-      <div className="prize-list">
-        {prizes.map((prize) => (
-          <div 
-            key={prize.id} 
-            className={`prize-item ${prize.isDrawn ? 'drawn' : ''}`}
-          >
-            <span>
-              {prize.name}
-            </span>
-            {prize.isDrawn && <div className="check-mark">✓</div>}
-          </div>
-        ))}
+
+      <div className="guide-text">
+        <p>点击<span className="highlight">卡片</span>抽取今天的作业内容</p>
+        <p>使用<span className="highlight">🔄</span>重新开始游戏</p>
       </div>
 
       <div className="wrapper">
@@ -397,179 +387,81 @@ const LuckyCard = () => {
   );
 }
 
-const StyledWrapper = styled.div<{ $isChildLocked?: boolean }>`
+const StyledWrapper = styled.div`
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
-  height: 100%;
-  width: 100%;
-  position: relative;
-  gap: 1rem;
+  padding: 1rem;
 
   .controls {
-    position: absolute;
-    top: 0;
-    right: 0.5rem;
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
     display: flex;
-    gap: 0.5rem;
-    z-index: 10;
-  }
+    gap: 0.8rem;
+    z-index: 100;
 
-  .control-button {
-    background: rgba(255, 255, 255, 0.8);
-    border: none;
-    border-radius: 50%;
-    width: 2.5rem;
-    height: 2.5rem;
-    font-size: 1.25rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s;
-    backdrop-filter: blur(5px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    text-decoration: none; // 为链接添加样式
-
-    &:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    }
-
-    &:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    &.child-lock-button {
-      background: ${props => props.$isChildLocked ? 
-        'linear-gradient(45deg, #ff69b4, #ff1493)' : 
-        'linear-gradient(45deg, #90EE90, #32CD32)'};
-      color: white;
-    }
-
-    &.github-button {
-      background: linear-gradient(45deg, #333, #24292e);
-      color: white;
-      padding: 0.5rem;
-
-      svg {
-        width: 1.5rem;
-        height: 1.5rem;
-      }
-
-      &:hover {
-        background: linear-gradient(45deg, #24292e, #1a1a1a);
-      }
-    }
-  }
-
-  .prize-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    gap: 0.75rem;
-    width: 100%;
-    padding: 1rem;
-    margin-top: 4rem;
-    max-height: 25vh;
-    overflow-y: auto;
-    background: rgba(255, 255, 255, 0.7);
-    border-radius: 1.5rem;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-
-    @media (max-width: 640px) {
-      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-      margin-top: 3.5rem;
-      padding: 0.75rem;
-      gap: 0.5rem;
-    }
-
-    .prize-item {
-      background: white;
-      padding: 0.75rem;
-      border-radius: 1rem;
-      text-align: center;
-      font-size: 1rem;
-      transition: all 0.3s;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    .control-button {
+      width: 2.5rem;
+      height: 2.5rem;
+      border: none;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(4px);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
-      min-height: 3.5rem;
-      position: relative;
-      overflow: hidden;
+      font-size: 1.2rem;
+      transition: all 0.2s ease;
 
-      @media (max-width: 640px) {
-        padding: 0.5rem;
-        font-size: 0.875rem;
-        min-height: 3rem;
-      }
-
-      &::before {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(45deg, rgba(255, 105, 180, 0.1), rgba(147, 112, 219, 0.1));
-        opacity: 0;
-        transition: opacity 0.3s;
-      }
-
-      &:hover:not(.drawn) {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-
-        &::before {
-          opacity: 1;
-        }
-      }
-
-      &.drawn {
-        opacity: 0.7;
-        background: #f8f8f8;
-
-        span {
-          color: #666;
-        }
-      }
-
-      span {
-        display: block;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        color: #333;
-        font-weight: 500;
-        padding: 0 0.25rem;
-      }
-
-      .check-mark {
-        position: absolute;
-        top: 0.25rem;
-        right: 0.25rem;
-        font-size: 0.875rem;
-        color: #ff69b4;
-      }
-    }
-
-    &::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    &::-webkit-scrollbar-track {
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 3px;
-    }
-
-    &::-webkit-scrollbar-thumb {
-      background: rgba(255, 105, 180, 0.3);
-      border-radius: 3px;
-      
       &:hover {
-        background: rgba(255, 105, 180, 0.5);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        background: rgba(255, 255, 255, 1);
       }
+
+      &:active {
+        transform: translateY(0);
+      }
+
+      &.github-button {
+        background: linear-gradient(45deg, #333, #24292e);
+        color: white;
+        padding: 0.5rem;
+
+        svg {
+          width: 1.5rem;
+          height: 1.5rem;
+        }
+
+        &:hover {
+          background: linear-gradient(45deg, #24292e, #1a1a1a);
+        }
+      }
+    }
+  }
+
+  .guide-text {
+    text-align: center;
+    margin: 2rem 0;
+    color: #666;
+    font-size: 1.1rem;
+    max-width: 800px;
+    line-height: 1.6;
+    
+    .highlight {
+      color: #ff4d4d;
+      font-weight: 500;
+    }
+    
+    @media (max-width: 768px) {
+      font-size: 1rem;
+      padding: 0 1rem;
     }
   }
 
