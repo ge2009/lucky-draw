@@ -22,9 +22,9 @@ export const Settings = ({ prizes, onSave, onClose, currentCoverImage }: Setting
 
   const handleAdd = () => {
     const newPrize: Prize = {
-      id: Math.max(...editedPrizes.map(p => p.id)) + 1,
+      id: Math.max(...editedPrizes.map(p => p.id), 0) + 1,
       name: '',
-      colorCard: '255, 192, 203'
+      colorCard: '255, 0, 0'
     };
     setEditedPrizes([...editedPrizes, newPrize]);
   };
@@ -58,31 +58,34 @@ export const Settings = ({ prizes, onSave, onClose, currentCoverImage }: Setting
     <StyledSettings>
       <div className="modal">
         <div className="modal-header">
-          <h2>✨ 红包设置 ✨</h2>
+          <h2>✨ 设置 ✨</h2>
           <button className="close-button" onClick={onClose}>×</button>
         </div>
 
-        <div className="cover-upload">
-          <h3>红包封面图片</h3>
-          <div 
-            className="image-preview" 
-            onClick={handleImageClick}
-            style={{
-              backgroundImage: coverImage ? `url(${coverImage})` : 'none'
-            }}
-          >
-            {!coverImage && <span>点击上传图片</span>}
+        {currentCoverImage !== undefined && (
+          <div className="cover-upload">
+            <h3>红包封面图片</h3>
+            <div 
+              className="image-preview" 
+              onClick={handleImageClick}
+              style={{
+                backgroundImage: coverImage ? `url(${coverImage})` : 'none'
+              }}
+            >
+              {!coverImage && <span>点击上传图片</span>}
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              style={{ display: 'none' }}
+            />
           </div>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleImageUpload}
-            style={{ display: 'none' }}
-          />
-        </div>
+        )}
         
         <div className="prizes-list">
+          <h3>奖品列表</h3>
           {editedPrizes.map((prize) => (
             <div key={prize.id} className="prize-input">
               <div className="input-wrapper">
@@ -104,20 +107,22 @@ export const Settings = ({ prizes, onSave, onClose, currentCoverImage }: Setting
           ))}
         </div>
 
-        <button className="add-button" onClick={handleAdd}>
-          <span className="plus">+</span> 添加新奖品
-        </button>
+        <div className="bottom-section">
+          <button className="add-button" onClick={handleAdd}>
+            <span className="plus">+</span> 添加新奖品
+          </button>
 
-        <div className="buttons">
-          <button 
-            className="save-button" 
-            onClick={() => onSave(editedPrizes, coverImage)}
-          >
-            保存设置
-          </button>
-          <button className="cancel-button" onClick={onClose}>
-            取消
-          </button>
+          <div className="buttons">
+            <button 
+              className="save-button" 
+              onClick={() => onSave(editedPrizes, coverImage)}
+            >
+              保存设置
+            </button>
+            <button className="cancel-button" onClick={onClose}>
+              取消
+            </button>
+          </div>
         </div>
       </div>
     </StyledSettings>
@@ -128,30 +133,30 @@ const StyledSettings = styled.div`
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  backdrop-filter: blur(5px);
 
   .modal {
     background: white;
-    padding: 1rem;
     border-radius: 1rem;
     width: 90%;
     max-width: 500px;
     max-height: 90vh;
-    overflow-y: auto;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-    animation: modalShow 0.3s ease-out;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
   }
 
   .modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1rem;
-    padding: 0.5rem;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #eee;
 
     h2 {
       margin: 0;
@@ -176,140 +181,19 @@ const StyledSettings = styled.div`
     }
   }
 
-  .prizes-list {
-    max-height: 50vh;
-    overflow-y: auto;
-    margin-bottom: 1rem;
-    padding: 0.5rem;
-  }
-
-  .prize-input {
-    display: flex;
-    gap: 0.75rem;
-    margin-bottom: 0.75rem;
-    align-items: center;
-
-    .input-wrapper {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      background: #f5f5f5;
-      border-radius: 0.75rem;
-      padding: 0.5rem 1rem;
-      transition: all 0.3s;
-
-      &:focus-within {
-        background: #fff;
-        box-shadow: 0 0 0 2px #ff69b4;
-      }
-
-      .emoji {
-        margin-right: 0.5rem;
-        font-size: 1.25rem;
-      }
-
-      input {
-        flex: 1;
-        border: none;
-        background: none;
-        padding: 0.5rem 0;
-        font-size: 1rem;
-        outline: none;
-
-        &::placeholder {
-          color: #999;
-        }
-      }
-    }
-
-    .delete-button {
-      background: none;
-      border: none;
-      font-size: 1.25rem;
-      cursor: pointer;
-      padding: 0.5rem;
-      opacity: 0.6;
-      transition: all 0.3s;
-
-      &:hover {
-        opacity: 1;
-        transform: scale(1.1);
-      }
-    }
-  }
-
-  .add-button {
-    width: 100%;
-    padding: 0.75rem;
-    background: #f0f0f0;
-    border: 2px dashed #ccc;
-    border-radius: 0.75rem;
-    color: #666;
-    font-size: 1rem;
-    cursor: pointer;
-    margin-bottom: 1.5rem;
-    transition: all 0.3s;
-
-    .plus {
-      font-size: 1.25rem;
-      margin-right: 0.5rem;
-    }
-
-    &:hover {
-      border-color: #ff69b4;
-      color: #ff69b4;
-      background: #fff;
-    }
-  }
-
-  .buttons {
-    display: flex;
-    gap: 0.75rem;
-    justify-content: flex-end;
-
-    button {
-      padding: 0.75rem 1.5rem;
-      border: none;
-      border-radius: 0.75rem;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: all 0.3s;
-
-      &.save-button {
-        background: #ff69b4;
-        color: white;
-
-        &:hover {
-          background: #ff1493;
-          transform: translateY(-2px);
-        }
-      }
-
-      &.cancel-button {
-        background: #f0f0f0;
-        color: #666;
-
-        &:hover {
-          background: #e0e0e0;
-          transform: translateY(-2px);
-        }
-      }
-    }
-  }
-
   .cover-upload {
-    margin-bottom: 1.5rem;
-    padding: 0.5rem;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #eee;
 
     h3 {
-      margin: 0 0 0.5rem;
+      margin: 0 0 0.75rem;
       color: #666;
       font-size: 1rem;
     }
 
     .image-preview {
       width: 100%;
-      height: 200px;
+      height: 160px;
       border: 2px dashed #ccc;
       border-radius: 0.75rem;
       display: flex;
@@ -320,6 +204,10 @@ const StyledSettings = styled.div`
       background-position: center;
       background-repeat: no-repeat;
       transition: all 0.3s;
+
+      @media (min-width: 640px) {
+        height: 200px;
+      }
 
       span {
         color: #666;
@@ -334,14 +222,140 @@ const StyledSettings = styled.div`
     }
   }
 
-  @keyframes modalShow {
-    from {
-      opacity: 0;
-      transform: translateY(20px);
+  .prizes-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem 1.5rem;
+    
+    h3 {
+      margin: 0 0 1rem;
+      color: #666;
+      font-size: 1rem;
     }
-    to {
-      opacity: 1;
-      transform: translateY(0);
+
+    .prize-input {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+      align-items: center;
+
+      .input-wrapper {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        background: #f5f5f5;
+        border-radius: 0.75rem;
+        padding: 0.5rem 1rem;
+        transition: all 0.3s;
+
+        &:focus-within {
+          background: #fff;
+          box-shadow: 0 0 0 2px #ff69b4;
+        }
+
+        .emoji {
+          margin-right: 0.5rem;
+          font-size: 1.25rem;
+        }
+
+        input {
+          flex: 1;
+          border: none;
+          background: none;
+          padding: 0.5rem 0;
+          font-size: 1rem;
+          outline: none;
+
+          &::placeholder {
+            color: #999;
+          }
+        }
+      }
+
+      .delete-button {
+        background: none;
+        border: none;
+        font-size: 1.25rem;
+        cursor: pointer;
+        padding: 0.5rem;
+        opacity: 0.6;
+        transition: all 0.3s;
+
+        &:hover {
+          opacity: 1;
+          transform: scale(1.1);
+        }
+      }
+    }
+  }
+
+  .bottom-section {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #eee;
+    background: #fff;
+
+    .add-button {
+      width: 100%;
+      padding: 0.75rem;
+      background: #f0f0f0;
+      border: 2px dashed #ccc;
+      border-radius: 0.75rem;
+      color: #666;
+      font-size: 1rem;
+      cursor: pointer;
+      margin-bottom: 1rem;
+      transition: all 0.3s;
+
+      .plus {
+        font-size: 1.25rem;
+        margin-right: 0.5rem;
+      }
+
+      &:hover {
+        border-color: #ff69b4;
+        color: #ff69b4;
+        background: #fff;
+      }
+    }
+
+    .buttons {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: flex-end;
+
+      button {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 0.75rem;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s;
+
+        &.save-button {
+          background: #ff69b4;
+          color: white;
+
+          &:hover {
+            background: #ff1493;
+            transform: translateY(-2px);
+          }
+        }
+
+        &.cancel-button {
+          background: #f0f0f0;
+          color: #666;
+
+          &:hover {
+            background: #e0e0e0;
+            transform: translateY(-2px);
+          }
+        }
+
+        @media (max-width: 640px) {
+          padding: 0.5rem 1rem;
+          font-size: 0.875rem;
+        }
+      }
     }
   }
 `; 

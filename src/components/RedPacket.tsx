@@ -214,9 +214,10 @@ const RedPacketComponent = () => {
   };
 
   const handleSettingsClick = () => {
+    playSound(clickSound);
     if (isChildLocked) {
       const password = prompt('请输入密码解锁设置:');
-      if (password === '1234') {
+      if (password === '8888') {
         setShowSettings(true);
       } else {
         alert('密码错误!');
@@ -234,6 +235,12 @@ const RedPacketComponent = () => {
       localStorage.setItem('redPacketCover', newCoverImage);
     }
     setShowSettings(false);
+    // 更新红包列表
+    setPackets(newPrizes.map(prize => ({
+      id: prize.id,
+      amount: prize.name,
+      isOpened: false
+    })));
   };
 
   const handlePacketClick = (packet: RedPacket) => {
@@ -391,12 +398,16 @@ const RedPacketComponent = () => {
       )}
 
       {showSettings && (
-        <Settings
-          prizes={prizes}
-          onSave={handleSettingsSave}
-          onClose={() => setShowSettings(false)}
-          currentCoverImage={coverImage}
-        />
+        <div className="settings-modal">
+          <div className="modal-content">
+            <Settings
+              prizes={prizes}
+              onSave={handleSettingsSave}
+              onClose={() => setShowSettings(false)}
+              currentCoverImage={coverImage}
+            />
+          </div>
+        </div>
       )}
     </StyledWrapper>
   );
@@ -405,25 +416,25 @@ const RedPacketComponent = () => {
 const StyledWrapper = styled.div`
   position: relative;
   width: 100%;
-  min-height: 100vh;
+  height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 1rem;
+  overflow: hidden;
 
   .controls {
     position: fixed;
     top: 1rem;
     right: 1rem;
     display: flex;
-    gap: 0.8rem;
+    gap: 0.5rem;
     z-index: 100;
 
     .control-button {
-      width: 2.5rem;
-      height: 2.5rem;
+      width: 3rem;
+      height: 3rem;
       border: none;
-      border-radius: 8px;
+      border-radius: 12px;
       background: rgba(255, 255, 255, 0.9);
       backdrop-filter: blur(4px);
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -431,7 +442,7 @@ const StyledWrapper = styled.div`
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.2rem;
+      font-size: 1.5rem;
       transition: all 0.2s ease;
 
       &:hover {
@@ -450,8 +461,8 @@ const StyledWrapper = styled.div`
         padding: 0.5rem;
 
         svg {
-          width: 1.5rem;
-          height: 1.5rem;
+          width: 2rem;
+          height: 2rem;
         }
 
         &:hover {
@@ -463,136 +474,156 @@ const StyledWrapper = styled.div`
 
   .guide-text {
     text-align: center;
-    margin: 2rem 0;
     color: #666;
-    font-size: 1.1rem;
-    max-width: 800px;
-    line-height: 1.6;
+    margin-bottom: 1rem;
+    font-size: 0.875rem;
     
-    .highlight {
-      color: #ff4d4d;
-      font-weight: 500;
-    }
-    
-    @media (max-width: 768px) {
+    @media (min-width: 640px) {
       font-size: 1rem;
-      padding: 0 1rem;
     }
   }
 
   .packets-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 1.5rem;
-    padding: 1.5rem;
     width: 100%;
     max-width: 1200px;
-    margin: 5rem auto 2rem;
-    place-items: center;
+    margin: 0 auto;
+    padding: 1rem;
+    display: grid;
+    gap: 1rem;
+    overflow-y: auto;
+    max-height: calc(100vh - 12rem);
+    align-content: start;
     
-    // 根据红包数量调整大小和布局
+    /* 根据红包数量调整布局 */
     &[data-count="1"] {
+      grid-template-columns: repeat(1, 1fr);
       max-width: 400px;
-      margin-top: 8rem;
       .modern-red-packet {
-        width: 300px;
         height: 400px;
       }
     }
     
     &[data-count="2"] {
-      max-width: 800px;
       grid-template-columns: repeat(2, 1fr);
-      margin-top: 7rem;
+      max-width: 800px;
       .modern-red-packet {
-        width: 250px;
         height: 333px;
       }
     }
     
     &[data-count="3"] {
-      max-width: 900px;
       grid-template-columns: repeat(3, 1fr);
-      margin-top: 6rem;
+      max-width: 900px;
       .modern-red-packet {
-        width: 220px;
         height: 293px;
       }
     }
     
     &[data-count="4"] {
-      max-width: 1000px;
       grid-template-columns: repeat(2, 1fr);
-      margin-top: 6rem;
+      max-width: 1000px;
       .modern-red-packet {
-        width: 200px;
         height: 267px;
       }
     }
     
     &[data-count="5"], &[data-count="6"] {
-      max-width: 1100px;
       grid-template-columns: repeat(3, 1fr);
-      margin-top: 5.5rem;
+      max-width: 1100px;
       .modern-red-packet {
-        width: 180px;
         height: 240px;
       }
     }
     
     &[data-count="7"], &[data-count="8"], &[data-count="9"] {
-      max-width: 1200px;
       grid-template-columns: repeat(3, 1fr);
-      margin-top: 5rem;
+      max-width: 1200px;
       .modern-red-packet {
-        width: 160px;
         height: 213px;
       }
     }
     
-    // 超过9个时使用默认大小
-    &[data-count="10"] {
+    &[data-count="10"], &[data-count="11"], &[data-count="12"] {
       grid-template-columns: repeat(4, 1fr);
-      margin-top: 5rem;
       .modern-red-packet {
-        width: 150px;
         height: 200px;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      grid-template-columns: repeat(2, 1fr) !important;
+      .modern-red-packet {
+        height: 180px !important;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      grid-template-columns: repeat(1, 1fr) !important;
+      .modern-red-packet {
+        height: 240px !important;
       }
     }
   }
 
   .modern-red-packet {
     position: relative;
-    transform-style: preserve-3d;
-    transition: transform 0.3s ease;
-    margin: 0 auto;
-    width: 150px;
-    height: 200px;
-    perspective: 1000px;
+    width: 100%;
+    border-radius: 1rem;
     cursor: pointer;
+    perspective: 1000px;
+    transform-style: preserve-3d;
+    transition: transform 0.6s;
 
-    &.opening {
-      transform-style: preserve-3d;
-      animation: flip 0.6s ease-in-out forwards;
+    &:hover {
+      transform: translateY(-5px) scale(1.02);
+      
+      .packet-front {
+        filter: brightness(1.1);
+        
+        .custom-cover {
+          opacity: 0.9;
+        }
+        
+        .character {
+          transform: scale(1.05);
+        }
+        
+        .decorations {
+          .sun {
+            transform: rotate(180deg);
+          }
+          .cloud {
+            transform: translateX(10px);
+          }
+          .flower {
+            transform: rotate(45deg);
+          }
+          .pencil {
+            transform: rotate(-10deg);
+          }
+        }
+      }
     }
 
     &.opened {
-      pointer-events: none;
       transform: rotateY(180deg);
+      pointer-events: none;
     }
 
-    .packet-front,
-    .packet-back {
+    .packet-front, .packet-back {
       position: absolute;
       width: 100%;
       height: 100%;
       backface-visibility: hidden;
-      border-radius: 12px;
-      overflow: hidden;
+      border-radius: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
 
     .packet-front {
-      background: #fff;
+      background: white;
       transform: rotateY(0deg);
       
       .custom-cover {
@@ -600,130 +631,127 @@ const StyledWrapper = styled.div`
         height: 100%;
         background-size: cover;
         background-position: center;
-        transition: all 0.3s ease;
-        transform-origin: center;
-
-        &:hover {
-          transform: scale(1.05);
-          filter: brightness(1.1);
-          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        background-repeat: no-repeat;
+        border-radius: 1rem;
+        transition: all 0.3s;
+      }
+      
+      .illustration {
+        width: 100%;
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+        
+        .character {
+          position: absolute;
+          width: 60%;
+          height: 60%;
+          left: 20%;
+          top: 20%;
+          background-size: contain;
+          background-position: center;
+          background-repeat: no-repeat;
+          transition: transform 0.3s;
+        }
+        
+        .decorations {
+          position: absolute;
+          inset: 0;
+          
+          .sun {
+            position: absolute;
+            top: 10%;
+            right: 10%;
+            width: 2rem;
+            height: 2rem;
+            background: #FFD700;
+            border-radius: 50%;
+            transition: transform 0.3s;
+          }
+          
+          .cloud {
+            position: absolute;
+            font-size: 1.5rem;
+            transition: transform 0.3s;
+            
+            &:nth-of-type(1) {
+              top: 15%;
+              left: 10%;
+            }
+            
+            &:nth-of-type(2) {
+              bottom: 15%;
+              right: 10%;
+            }
+          }
+          
+          .flower {
+            position: absolute;
+            font-size: 1.2rem;
+            transition: transform 0.3s;
+            
+            &:nth-of-type(1) {
+              top: 20%;
+              left: 20%;
+            }
+            
+            &:nth-of-type(2) {
+              bottom: 20%;
+              right: 20%;
+            }
+          }
+          
+          .pencil {
+            position: absolute;
+            bottom: 10%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 1rem;
+            height: 4rem;
+            background: linear-gradient(to bottom, #FFD700 0%, #FFD700 20%, #FFA500 20%, #FFA500 90%, #8B4513 90%);
+            transition: transform 0.3s;
+          }
         }
       }
     }
 
     .packet-back {
-      background: linear-gradient(135deg, #ff4d4d 0%, #ff1a1a 100%);
+      background: linear-gradient(135deg, #ff4d4d 0%, #ff0000 100%);
       transform: rotateY(180deg);
-      display: flex;
-      align-items: center;
-      justify-content: center;
       
       .amount {
         font-size: 1.5rem;
-        color: #fff;
-        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
-        padding: 1rem;
+        color: white;
         text-align: center;
+        padding: 1rem;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 0.5rem;
+        backdrop-filter: blur(4px);
+        max-width: 80%;
       }
-    }
-  }
-
-  @keyframes flip {
-    from {
-      transform: rotateY(0deg);
-    }
-    to {
-      transform: rotateY(180deg);
-    }
-  }
-
-  @keyframes shake {
-    0%, 100% { 
-      transform: translate(0, 0) rotate(0deg); 
-    }
-    25% { 
-      transform: translate(-10px, -5px) rotate(-5deg); 
-    }
-    50% { 
-      transform: translate(5px, 10px) rotate(5deg); 
-    }
-    75% { 
-      transform: translate(10px, -10px) rotate(-3deg); 
-    }
-  }
-
-  .shuffling {
-    animation: shake 0.3s ease-in-out infinite;
-  }
-
-  .result {
-    position: fixed;
-    bottom: 2rem;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(255, 255, 255, 0.9);
-    padding: 1rem 2rem;
-    border-radius: 2rem;
-    font-size: 1.25rem;
-    color: #ff4d4d;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    backdrop-filter: blur(5px);
-    z-index: 100;
-    white-space: nowrap;
-  }
-
-  @media (max-width: 640px) {
-    .packets-container {
-      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-      gap: 1rem;
-      padding: 1rem;
-    }
-
-    .modern-red-packet {
-      width: 120px;
-      height: 160px;
-
-      .fu-character {
-        font-size: 3rem;
-      }
-
-      .amount {
-        font-size: 1.25rem;
-      }
-    }
-
-    .result {
-      font-size: 1rem;
-      padding: 0.75rem 1.5rem;
     }
   }
 
   .modal {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
+    inset: 0;
     display: flex;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
     z-index: 1000;
     
     .modal-backdrop {
       position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(255, 255, 255, 0.2);
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
       backdrop-filter: blur(8px);
     }
     
     .modal-content {
       position: relative;
-      z-index: 1001;
-      width: 300px;
-      height: 400px;
+      width: 90%;
+      max-width: 500px;
+      aspect-ratio: 3/4;
       perspective: 1000px;
       
       .modal-card {
@@ -737,19 +765,19 @@ const StyledWrapper = styled.div`
           transform: rotateY(180deg);
         }
         
-        .modal-front,
-        .modal-back {
+        .modal-front, .modal-back {
           position: absolute;
           width: 100%;
           height: 100%;
           backface-visibility: hidden;
-          border-radius: 12px;
+          border-radius: 1rem;
           overflow: hidden;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
         }
         
         .modal-front {
-          background: #fff;
+          background: white;
+          
           img {
             width: 100%;
             height: 100%;
@@ -758,36 +786,29 @@ const StyledWrapper = styled.div`
         }
         
         .modal-back {
-          background: linear-gradient(135deg, #ff4d4d 0%, #ff1a1a 100%);
+          background: linear-gradient(135deg, #ff4d4d 0%, #ff0000 100%);
           transform: rotateY(180deg);
           display: flex;
           align-items: center;
           justify-content: center;
           
           .result-text {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 1rem;
-
+            text-align: center;
+            color: white;
+            padding: 2rem;
+            
             .result-content {
-              font-size: 2.5rem;
-              font-weight: 500;
+              font-size: 2rem;
+              font-weight: bold;
+              margin-top: 1rem;
+              background: rgba(255, 255, 255, 0.1);
+              padding: 1rem 2rem;
+              border-radius: 1rem;
+              backdrop-filter: blur(4px);
             }
           }
         }
       }
-    }
-  }
-  
-  @keyframes zoomIn {
-    from {
-      transform: scale(0.5);
-      opacity: 0;
-    }
-    to {
-      transform: scale(1);
-      opacity: 1;
     }
   }
 `;
