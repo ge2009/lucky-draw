@@ -32,7 +32,11 @@ const DEFAULT_PACKETS: RedPacket[] = [
 const DEFAULT_COVER_IMAGE = '/images/red-packet-cover.png';
 
 const RedPacketComponent = () => {
-  const [packets, setPackets] = useState<RedPacket[]>(DEFAULT_PACKETS);
+  const [packets, setPackets] = useState<RedPacket[]>(() => {
+    // 初始化时进行随机排序
+    const initialPackets = DEFAULT_PACKETS.sort(() => Math.random() - 0.5);
+    return initialPackets;
+  });
   const [selectedPacket, setSelectedPacket] = useState<RedPacket | null>(null);
   const [isOpening, setIsOpening] = useState(false);
   const [showResult, setShowResult] = useState(false);
@@ -76,7 +80,9 @@ const RedPacketComponent = () => {
   } | null>(null);
 
   useEffect(() => {
-    setPackets(prizes.map((prize: Prize) => ({
+    // 每次prizes更新时，随机排序新的红包列表
+    const shuffledPrizes = [...prizes].sort(() => Math.random() - 0.5);
+    setPackets(shuffledPrizes.map(prize => ({
       id: prize.id,
       amount: prize.name,
       isOpened: false
@@ -235,8 +241,9 @@ const RedPacketComponent = () => {
       localStorage.setItem('redPacketCover', newCoverImage);
     }
     setShowSettings(false);
-    // 更新红包列表
-    setPackets(newPrizes.map(prize => ({
+    // 更新红包列表时进行随机排序
+    const shuffledPrizes = [...newPrizes].sort(() => Math.random() - 0.5);
+    setPackets(shuffledPrizes.map(prize => ({
       id: prize.id,
       amount: prize.name,
       isOpened: false
