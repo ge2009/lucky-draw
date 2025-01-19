@@ -1,12 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import confetti from 'canvas-confetti';
 import { Settings } from '@/components/Settings';
-
-// 导入音效
-const openSound = '/sounds/open.mp3';
-const winSound = '/sounds/win.mp3';
-const clickSound = '/sounds/click.mp3';
+import { triggerOptimizedConfetti } from '@/utils/confettiShapes';
 
 interface RedPacket {
   id: number;
@@ -40,7 +36,6 @@ const RedPacketComponent = () => {
   const [selectedPacket, setSelectedPacket] = useState<RedPacket | null>(null);
   const [isOpening, setIsOpening] = useState(false);
   const [showResult, setShowResult] = useState(false);
-  const [isSoundEnabled, setIsSoundEnabled] = useState(true);
   const [isChildLocked, setIsChildLocked] = useState(() => {
     try {
       return localStorage.getItem('isChildLocked') === 'true';
@@ -89,55 +84,14 @@ const RedPacketComponent = () => {
     })));
   }, [prizes]);
 
-  // 音效播放函数
-  const playSound = useCallback((audioSrc: string) => {
-    if (isSoundEnabled) {
-      const audio = new Audio(audioSrc);
-      audio.play().catch(e => console.log('音频播放失败:', e));
-    }
-  }, [isSoundEnabled]);
-
-  // 撒花效果
-  const triggerConfetti = () => {
-    const duration = 3000;
-    const defaults = {
-      startVelocity: 30,
-      spread: 360,
-      ticks: 60,
-      zIndex: 0,
-      particleCount: 150,
-      colors: ['#ff0000', '#ffd700', '#ff69b4', '#ff4500']
-    };
-
-    const interval: any = setInterval(function() {
-      const timeLeft = duration;
-
-      if (timeLeft <= 0) {
-        return clearInterval(interval);
-      }
-
-      confetti({
-        ...defaults,
-        particleCount: 50,
-        origin: { x: 0.3, y: 0.5 }
-      });
-
-      confetti({
-        ...defaults,
-        particleCount: 50,
-        origin: { x: 0.7, y: 0.5 }
-      });
-    }, 250);
-
-    setTimeout(() => clearInterval(interval), duration);
-  };
+  // 使用优化后的撒花效果
+  const triggerConfetti = triggerOptimizedConfetti;
 
   const handleOpenPacket = (packet: RedPacket) => {
     if (isOpening || packet.isOpened) return;
 
     setIsOpening(true);
     setSelectedPacket(packet);
-    playSound(openSound);
 
     // 提前设置卡片为已打开状态，这样文字会更快显示
     setPackets(packets.map(p => 
@@ -147,7 +101,6 @@ const RedPacketComponent = () => {
     setTimeout(() => {
       setShowResult(true);
       triggerConfetti();
-      playSound(winSound);
       setIsOpening(false);
     }, 1000);
   };
@@ -156,7 +109,6 @@ const RedPacketComponent = () => {
     if (isShuffling) return;
     
     setIsShuffling(true);
-    playSound(clickSound);
 
     // 获取所有红包元素
     const packetElements = document.querySelectorAll('.red-packet');
@@ -220,7 +172,6 @@ const RedPacketComponent = () => {
   };
 
   const handleSettingsClick = () => {
-    playSound(clickSound);
     if (isChildLocked) {
       const password = prompt('请输入密码解锁设置:');
       if (password === '8888') {
@@ -253,9 +204,6 @@ const RedPacketComponent = () => {
   const handlePacketClick = (packet: RedPacket) => {
     if (isShuffling || packet.isOpened) return;
     
-    // 播放音效
-    playSound(openSound);
-    
     // 显示模态框和封面
     setModalContent({
       type: 'cover',
@@ -277,15 +225,8 @@ const RedPacketComponent = () => {
         content: packet.amount
       });
       
-      // 触发烟花效果
-      confetti({
-        particleCount: 150,
-        spread: 100,
-        origin: { y: 0.6 },
-        zIndex: 2000, // 确保烟花显示在最上层
-      });
-      
-      playSound(winSound);
+      // 使用统一的撒花效果
+      triggerConfetti();
     }, 1000);
   };
 
@@ -316,13 +257,6 @@ const RedPacketComponent = () => {
           aria-label="设置"
         >
           ⚙️
-        </button>
-        <button 
-          className="control-button sound-button" 
-          onClick={() => setIsSoundEnabled(!isSoundEnabled)}
-          aria-label={isSoundEnabled ? "关闭声音" : "开启声音"}
-        >
-          {isSoundEnabled ? '🔊' : '🔇'}
         </button>
         <button 
           className="control-button reset-button" 

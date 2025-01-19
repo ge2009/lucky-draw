@@ -1,13 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import confetti from 'canvas-confetti';
-
-// 导入音效
-const drawSound = '/sounds/draw.mp3';
-const winSound = '/sounds/win.mp3';
-const clickSound = '/sounds/click.mp3';
-
 import { Settings } from './Settings';
+import { triggerOptimizedConfetti } from '@/utils/confettiShapes';
 
 interface Prize {
   id: number;
@@ -34,7 +29,6 @@ const LuckyCard = () => {
   const [showMoveAnimation, setShowMoveAnimation] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [fadeOutName, setFadeOutName] = useState(false);
-  const [isSoundEnabled, setIsSoundEnabled] = useState(true);
   const [isReturning, setIsReturning] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [password, setPassword] = useState('');
@@ -66,82 +60,8 @@ const LuckyCard = () => {
     }
   }, []);
 
-  // 音效播放函数
-  const playSound = useCallback((audioSrc: string, duration?: number) => {
-    if (isSoundEnabled) {
-      const audio = new Audio(audioSrc);
-      if (duration) {
-        audio.loop = true;
-        audio.play().catch(e => console.log('音频播放失败:', e));
-        setTimeout(() => {
-          audio.loop = false;
-          audio.pause();
-        }, duration);
-      } else {
-        audio.play().catch(e => console.log('音频播放失败:', e));
-      }
-    }
-  }, [isSoundEnabled]);
-
-  // 全屏撒花效果
-  const triggerConfetti = () => {
-    const duration = 3000;
-    const animationEnd = Date.now() + duration;
-    const defaults = { 
-      startVelocity: 45, 
-      spread: 360, 
-      ticks: 100, 
-      zIndex: 0,
-      shapes: ['square', 'circle'] as Array<'square' | 'circle'>,
-      colors: ['#ff69b4', '#ff1493', '#9370db', '#20b2aa']
-    };
-
-    function randomInRange(min: number, max: number) {
-      return Math.random() * (max - min) + min;
-    }
-
-    const interval: any = setInterval(function() {
-      const timeLeft = animationEnd - Date.now();
-
-      if (timeLeft <= 0) {
-        return clearInterval(interval);
-      }
-
-      const particleCount = 100 * (timeLeft / duration);
-      
-      // 从四个角发射
-      confetti({
-        ...defaults,
-        particleCount: particleCount / 4,
-        origin: { x: 0, y: 0 }
-      });
-      
-      confetti({
-        ...defaults,
-        particleCount: particleCount / 4,
-        origin: { x: 1, y: 0 }
-      });
-      
-      confetti({
-        ...defaults,
-        particleCount: particleCount / 4,
-        origin: { x: 0, y: 0.8 }
-      });
-      
-      confetti({
-        ...defaults,
-        particleCount: particleCount / 4,
-        origin: { x: 1, y: 0.8 }
-      });
-      
-      // 从中间发射
-      confetti({
-        ...defaults,
-        particleCount: particleCount / 2,
-        origin: { x: 0.5, y: 0.5 }
-      });
-    }, 150); // 缩短间隔，增加密度
-  };
+  // 使用优化后的撒花效果
+  const triggerConfetti = triggerOptimizedConfetti;
 
   const handleDraw = () => {
     if (isSpinning || isReturning) return;
@@ -162,7 +82,6 @@ const LuckyCard = () => {
   };
 
   const startNewDraw = () => {
-    playSound(drawSound, 3000); // 播放 3 秒的抽奖音效
     setIsSpinning(true);
     setShowResult(false);
     setFadeOutName(false);
@@ -190,7 +109,6 @@ const LuckyCard = () => {
       setTimeout(() => {
         setShowMoveAnimation(true);
         triggerConfetti();
-        playSound(winSound);
         // 延长文字消失的时间
         setTimeout(() => {
           setFadeOutName(true);
@@ -207,8 +125,6 @@ const LuckyCard = () => {
 
   const handleReset = () => {
     if (isSpinning || isReturning) return;
-    
-    playSound(clickSound);
     setPrizes(prizes.map(p => ({ ...p, isDrawn: false })));
     setSelectedPrize(null);
     setShowResult(false);
@@ -238,7 +154,6 @@ const LuckyCard = () => {
   };
 
   const handleSettingsClick = () => {
-    playSound(clickSound);
     if (isChildLocked) {
       setShowPasswordModal(true);
     } else {
@@ -247,7 +162,6 @@ const LuckyCard = () => {
   };
 
   const toggleChildLock = () => {
-    playSound(clickSound);
     if (!isChildLocked) {
       // 开启童锁时需要验证密码
       setShowPasswordModal(true);
@@ -284,13 +198,6 @@ const LuckyCard = () => {
           aria-label="设置"
         >
           ⚙️
-        </button>
-        <button 
-          className="control-button sound-button" 
-          onClick={() => setIsSoundEnabled(!isSoundEnabled)}
-          aria-label={isSoundEnabled ? "关闭声音" : "开启声音"}
-        >
-          {isSoundEnabled ? '🔊' : '🔇'}
         </button>
         <button 
           className="control-button reset-button" 
